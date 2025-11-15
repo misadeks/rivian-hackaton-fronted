@@ -109,8 +109,8 @@ export default function DashboardPage() {
                 onCameraFocus={handleCameraFocus}
               />
               
-              {/* Score Badge Overlay */}
-              <ScoreBadge driveData={selectedSessionData} />
+              {/* Score Badge Overlay - Hidden when video is in fullscreen */}
+              {!focusedCamera && <ScoreBadge driveData={selectedSessionData} />}
               
               {/* Loading State */}
               {loading && (
