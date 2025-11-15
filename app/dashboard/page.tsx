@@ -28,46 +28,46 @@ export default function DashboardPage() {
       const data = await response.json();
       
       // Mock data for now
-      const mockData: DriveData = {
-        id: sessionId,
-        start_time: '2024-11-13T14:40:56Z',
-        end_time: '2024-11-13T15:20:30Z',
-        score: sessionId === '1' ? 85 : sessionId === '2' ? 92 : 76,
-        timeline: [
-          {
-            timestamp: '2024-11-13T14:45:30Z',
-            latitude: 44.79403305,
-            longitude: 20.42661285,
-            speed: 35.5,
-            limit: 50,
-            detected_violation: null
-          },
-          {
-            timestamp: '2024-11-13T14:52:15Z',
-            latitude: 44.79403305,
-            longitude: 20.42661285,
-            speed: 58.2,
-            limit: 50,
-            detected_violation: sessionId === '1' ? 'stop_sign_violation' : null
-          },
-          {
-            timestamp: '2024-11-13T15:05:45Z',
-            latitude: 40.7180,
-            longitude: -74.0100,
-            speed: 42.1,
-            limit: 50,
-            detected_violation: sessionId === '1' ? 'harsh_braking' : null
-          },
-          {
-            timestamp: '2024-11-13T15:15:22Z',
-            latitude: 40.7200,
-            longitude: -74.0120,
-            speed: 28.8,
-            limit: 40,
-            detected_violation: sessionId === '3' ? 'lane_departure' : null
-          }
-        ]
-      };
+      // const mockData: DriveData = {
+      //   id: sessionId,
+      //   start_time: '2024-11-13T14:40:56Z',
+      //   end_time: '2024-11-13T15:20:30Z',
+      //   score: sessionId === '1' ? 85 : sessionId === '2' ? 92 : 76,
+      //   timeline: [
+      //     {
+      //       timestamp: '2024-11-13T14:45:30Z',
+      //       latitude: 44.79403305,
+      //       longitude: 20.42661285,
+      //       speed: 35.5,
+      //       limit: 50,
+      //       detected_violation: null
+      //     },
+      //     {
+      //       timestamp: '2024-11-13T14:52:15Z',
+      //       latitude: 44.79403305,
+      //       longitude: 20.42661285,
+      //       speed: 58.2,
+      //       limit: 50,
+      //       detected_violation: sessionId === '1' ? 'stop_sign_violation' : null
+      //     },
+      //     {
+      //       timestamp: '2024-11-13T15:05:45Z',
+      //       latitude: 40.7180,
+      //       longitude: -74.0100,
+      //       speed: 42.1,
+      //       limit: 50,
+      //       detected_violation: sessionId === '1' ? 'harsh_braking' : null
+      //     },
+      //     {
+      //       timestamp: '2024-11-13T15:15:22Z',
+      //       latitude: 40.7200,
+      //       longitude: -74.0120,
+      //       speed: 28.8,
+      //       limit: 40,
+      //       detected_violation: sessionId === '3' ? 'lane_departure' : null
+      //     }
+      //   ]
+      // };
       
       setSelectedSessionData(data);
     } catch (error) {

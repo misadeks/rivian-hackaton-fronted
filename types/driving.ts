@@ -11,6 +11,7 @@ export interface TimelineEvent {
   speed: number;
   limit: number;
   detected_violation: string | null;
+  time_since_start: number;
 }
 
 export interface DriveData {
@@ -19,6 +20,7 @@ export interface DriveData {
   end_time: string;
   score: number;
   timeline: TimelineEvent[];
+  duration?: number;
 }
 
 export interface VideoAngles {

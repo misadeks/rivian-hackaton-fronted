@@ -115,14 +115,14 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
     
     const startTime = new Date(driveData.start_time).getTime();
     const endTime = new Date(driveData.end_time).getTime();
-    const totalDuration = (endTime - startTime) / 1000; // in seconds
-    
+    // const totalDuration = (endTime - startTime) / 1000; // in seconds
+    const totalDuration = driveData.duration || duration; // in seconds
     // Only include events with violations (matching timeline behavior)
     return driveData.timeline
       .filter(event => event.detected_violation)
       .map(event => {
-        const eventTime = new Date(event.timestamp).getTime();
-        const eventPosition = ((eventTime - startTime) / 1000) / totalDuration * 100; // percentage
+        // const eventTime = new Date(event.timestamp).getTime();
+        const eventPosition = (event.time_since_start) / totalDuration * 100; // percentage
         const violationDetails = getViolationDetails(event.detected_violation);
         
         return {
@@ -164,7 +164,7 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
       <div className="flex-1 p-4">
         {/* Cross pattern layout */}
         <div className="h-full w-full relative">
-            {isLoading && (
+            {/* {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-10">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -172,9 +172,9 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
                   <p className="text-white/60 text-xs">{loadedVideos.size} / 4 cameras ready</p>
                 </div>
               </div>
-            )}
+            )} */}
             {/* Front Center - Top */}
-            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-[520px] h-[290px]">
+            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-[555px] h-[310px]">
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video h-full">
                 <video
                   key={`frontCenter-${sessionId}`}
@@ -194,7 +194,7 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
             </div>
 
             {/* Front Left - Left */}
-            <div className="absolute left-1 top-1/2 transform -translate-y-1/2 w-[380px] h-[210px]">
+            <div className="absolute left-1 top-1/2 transform -translate-y-1/2 w-[434px] h-[240px]">
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video h-full">
                 <video
                   key={`frontLeft-${sessionId}`}
@@ -213,7 +213,7 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
             </div>
 
             {/* Front Right - Right */}
-            <div className="absolute right-1 top-1/2 transform -translate-y-1/2 w-[380px] h-[210px]">
+            <div className="absolute right-1 top-1/2 transform -translate-y-1/2 w-[434px] h-[240px]">
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video h-full">
                 <video
                   key={`frontRight-${sessionId}`}
@@ -232,7 +232,7 @@ export function VideoPlayer({ sessionId, driveData }: VideoPlayerProps) {
             </div>
 
             {/* Rear - Bottom */}
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-[520px] h-[290px]">
+            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-[555px] h-[310px]">
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video h-full">
                 <video
                   key={`rear-${sessionId}`}
