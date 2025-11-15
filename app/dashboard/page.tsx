@@ -6,12 +6,11 @@ import { VideoPlayer } from '@/components/video-player';
 import { DrivingTimeline } from '@/components/driving-timeline';
 import { ScoreBadge } from '@/components/score-badge';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { DriveData, FocusedCamera } from '@/types/driving';
+import { DriveData } from '@/types/driving';
 
 export default function DashboardPage() {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [selectedSessionData, setSelectedSessionData] = useState<DriveData | null>(null);
-  const [focusedCamera, setFocusedCamera] = useState<FocusedCamera>(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch session data when a session is selected
@@ -25,8 +24,8 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       // Replace with actual API call
-      // const response = await fetch(`/api/drive/${sessionId}`);
-      // const data = await response.json();
+      const response = await fetch(`http://localhost:5000/api/drive/${sessionId}`);
+      const data = await response.json();
       
       // Mock data for now
       const mockData: DriveData = {
@@ -37,23 +36,26 @@ export default function DashboardPage() {
         timeline: [
           {
             timestamp: '2024-11-13T14:45:30Z',
-            latitude: 40.7128,
-            longitude: -74.0060,
+            latitude: 44.79403305,
+            longitude: 20.42661285,
             speed: 35.5,
+            limit: 50,
             detected_violation: null
           },
           {
             timestamp: '2024-11-13T14:52:15Z',
-            latitude: 40.7150,
-            longitude: -74.0080,
+            latitude: 44.79403305,
+            longitude: 20.42661285,
             speed: 58.2,
-            detected_violation: sessionId === '1' ? 'speeding' : null
+            limit: 50,
+            detected_violation: sessionId === '1' ? 'stop_sign_violation' : null
           },
           {
             timestamp: '2024-11-13T15:05:45Z',
             latitude: 40.7180,
             longitude: -74.0100,
             speed: 42.1,
+            limit: 50,
             detected_violation: sessionId === '1' ? 'harsh_braking' : null
           },
           {
@@ -61,12 +63,13 @@ export default function DashboardPage() {
             latitude: 40.7200,
             longitude: -74.0120,
             speed: 28.8,
+            limit: 40,
             detected_violation: sessionId === '3' ? 'lane_departure' : null
           }
         ]
       };
       
-      setSelectedSessionData(mockData);
+      setSelectedSessionData(data);
     } catch (error) {
       console.error('Failed to fetch session data:', error);
     } finally {
@@ -76,11 +79,6 @@ export default function DashboardPage() {
 
   const handleSessionSelect = (sessionId: string) => {
     setSelectedSession(sessionId);
-    setFocusedCamera(null); // Reset camera focus when switching sessions
-  };
-
-  const handleCameraFocus = (camera: FocusedCamera) => {
-    setFocusedCamera(camera);
   };
 
   return (
@@ -103,14 +101,10 @@ export default function DashboardPage() {
           <div className="flex h-full w-full">
             {/* Video Player Section */}
             <div className={`${selectedSession ? 'flex-[2]' : 'flex-1'} min-w-0 relative flex flex-col`}>
-              <VideoPlayer
-                sessionId={selectedSession}
-                focusedCamera={focusedCamera}
-                onCameraFocus={handleCameraFocus}
-              />
+              <VideoPlayer sessionId={selectedSession} driveData={selectedSessionData} />
               
-              {/* Score Badge Overlay - Hidden when video is in fullscreen */}
-              {!focusedCamera && <ScoreBadge driveData={selectedSessionData} />}
+              {/* Score Badge Overlay */}
+              <ScoreBadge driveData={selectedSessionData} />
               
               {/* Loading State */}
               {loading && (

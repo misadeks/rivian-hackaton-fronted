@@ -9,6 +9,7 @@ export interface TimelineEvent {
   latitude: number;
   longitude: number;
   speed: number;
+  limit: number;
   detected_violation: string | null;
 }
 

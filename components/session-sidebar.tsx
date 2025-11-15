@@ -39,8 +39,8 @@ export function SessionSidebar({
     // Mock data for now - replace with actual API call
     const fetchSessions = async () => {
       try {
-        // const response = await fetch('/api/drives');
-        // const data = await response.json();
+        const response = await fetch('http://localhost:5000/api/drives');
+        const data = await response.json();
         
         // Mock data
         const mockSessions: DrivingSession[] = [
@@ -61,7 +61,7 @@ export function SessionSidebar({
           }
         ];
         
-        setSessions(mockSessions);
+        setSessions(data);
       } catch (error) {
         console.error('Failed to fetch sessions:', error);
       } finally {
@@ -93,16 +93,24 @@ export function SessionSidebar({
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader>
         {open ? (
+          <div className="flex items-center">
+            <div className="flex items-center justify-center py-4">
+            <div className="w-12 h-12 rounded-lg bg-white-500 flex items-center justify-center p-2">
+              <img src="/Rivian_logo.svg" alt="Rivian" className="w-full h-full object-contain" />
+            </div>
+          </div>
           <div className="flex flex-col gap-2 ml-2">
             <h2 className="text-lg font-semibold">Driving Sessions</h2>
             <p className="text-sm text-muted-foreground">
               Select a session to view details
             </p>
           </div>
+          </div>
+          
         ) : (
           <div className="flex items-center justify-center py-4">
-            <div className="w-12 h-12 rounded-lg bg-emerald-500 flex items-center justify-center">
-              <span className="text-white font-bold text-xl">R</span>
+            <div className="w-12 h-12 rounded-lg bg-white-500 flex items-center justify-center p-2">
+              <img src="/Rivian_logo.svg" alt="Rivian" className="w-full h-full object-contain" />
             </div>
           </div>
         )}
@@ -173,25 +181,6 @@ export function SessionSidebar({
         </SidebarContent>
       )}
 
-      {selectedSessionData && open && (
-        <SidebarFooter>
-          <div className="p-4 border-t border-border">
-            <h3 className="font-medium text-sm mb-2">Session Details</h3>
-            <div className="space-y-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3 h-3" />
-                <span>{selectedSessionData.timeline.length} events</span>
-              </div>
-              <Badge 
-                variant="outline" 
-                className={`text-white ${getScoreColor(selectedSessionData.score)}`}
-              >
-                Score: {selectedSessionData.score}
-              </Badge>
-            </div>
-          </div>
-        </SidebarFooter>
-      )}
     </Sidebar>
   );
 }

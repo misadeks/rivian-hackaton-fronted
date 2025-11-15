@@ -11,12 +11,93 @@ import {
   Gauge
 } from 'lucide-react';
 import { DriveData, TimelineEvent } from '@/types/driving';
+import { useState, useEffect } from 'react';
 
 interface DrivingTimelineProps {
   driveData: DriveData | null;
 }
 
+// Cache for addresses to avoid redundant API calls
+const addressCache = new Map<string, string>();
+
+// Function to get address from coordinates using Nominatim (OpenStreetMap)
+async function getAddressFromCoordinates(lat: number, lon: number): Promise<string> {
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  
+  // Check cache first
+  if (addressCache.has(cacheKey)) {
+    return addressCache.get(cacheKey)!;
+  }
+
+  try {
+    // Add a small delay to respect Nominatim's usage policy (max 1 request per second)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'RivianHackathon/1.0' // Required by Nominatim
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch address');
+    }
+    
+    const data = await response.json();
+    
+    // Format a readable address
+    const address = data.address;
+    const parts = [];
+    
+    if (address.road) parts.push(address.road);
+    if (address.suburb || address.neighbourhood) parts.push(address.suburb || address.neighbourhood);
+    if (address.city || address.town) parts.push(address.city || address.town);
+    
+    const formattedAddress = parts.length > 0 ? parts.join(', ') : 'Unknown location';
+    
+    // Cache the result
+    addressCache.set(cacheKey, formattedAddress);
+    
+    return formattedAddress;
+  } catch (error) {
+    console.error('Error fetching address:', error);
+    return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  }
+}
+
 export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
+  const [addresses, setAddresses] = useState<Record<string, string>>({});
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+
+  // Fetch addresses when driveData changes
+  useEffect(() => {
+    if (!driveData) return;
+
+    const fetchAddresses = async () => {
+      setLoadingAddresses(true);
+      const newAddresses: Record<string, string> = {};
+
+      // Fetch addresses for all violation events
+      for (const event of driveData.timeline) {
+        if (event.detected_violation) {
+          const key = `${event.latitude.toFixed(4)},${event.longitude.toFixed(4)}`;
+          if (!addresses[key]) {
+            const address = await getAddressFromCoordinates(event.latitude, event.longitude);
+            newAddresses[key] = address;
+          }
+        }
+      }
+
+      setAddresses(prev => ({ ...prev, ...newAddresses }));
+      setLoadingAddresses(false);
+    };
+
+    fetchAddresses();
+  }, [driveData]);
+
   if (!driveData) {
     return (
       <div className="w-96 max-w-96 min-w-80 border-l border-border bg-background h-full flex flex-col">
@@ -49,6 +130,7 @@ export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
       'rapid_acceleration': { severity: 'medium', name: 'Rapid Acceleration' },
       'lane_departure': { severity: 'low', name: 'Lane Departure' },
       'tailgating': { severity: 'high', name: 'Following Too Close' },
+      'stop_sign_violation': { severity: 'high', name: 'Stop Sign Violation' },
     };
 
     return violationTypes[violationId] || { severity: 'low', name: violationId };
@@ -67,7 +149,7 @@ export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
   };
 
   const formatSpeed = (speed: number) => {
-    return `${Math.round(speed)} mph`;
+    return `${Math.round(speed)} km/h`;
   };
 
   // Create timeline events including start, violations, and end
@@ -82,16 +164,21 @@ export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
     },
     ...driveData.timeline
       .filter(event => event.detected_violation)
-      .map((event, index) => ({
-        id: `violation-${index}`,
-        timestamp: event.timestamp,
-        type: 'violation' as const,
-        title: getViolationSeverity(event.detected_violation)?.name || 'Violation',
-        description: `Speed: ${formatSpeed(event.speed)} | Location: ${event.latitude.toFixed(4)}, ${event.longitude.toFixed(4)}`,
-        severity: getViolationSeverity(event.detected_violation)?.severity || 'low',
-        icon: AlertTriangle,
-        event,
-      })),
+      .map((event, index) => {
+        const coordKey = `${event.latitude.toFixed(4)},${event.longitude.toFixed(4)}`;
+        const address = addresses[coordKey] || 'Loading address...';
+        
+        return {
+          id: `violation-${index}`,
+          timestamp: event.timestamp,
+          type: 'violation' as const,
+          title: getViolationSeverity(event.detected_violation)?.name || 'Violation',
+          description: `${address}`,
+          severity: getViolationSeverity(event.detected_violation)?.severity || 'low',
+          icon: AlertTriangle,
+          event,
+        };
+      }),
     {
       id: 'end',
       timestamp: driveData.end_time,
@@ -112,9 +199,6 @@ export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
         </h2>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
           <span>{timelineEvents.length} events</span>
-          <Badge variant="outline">
-            Score: {driveData.score}
-          </Badge>
         </div>
       </div>
       
@@ -162,6 +246,10 @@ export function DrivingTimeline({ driveData }: DrivingTimelineProps) {
                                 <div className="flex items-center gap-1">
                                   <Gauge className="w-3 h-3" />
                                   <span>{formatSpeed(event.event.speed)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span>Limit:</span>
+                                  <span>{formatSpeed(event.event.limit)}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
